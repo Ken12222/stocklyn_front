@@ -11,23 +11,36 @@ import {
   TableHeader,
   TableRow
 } from "../../../components/ui/table";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox"
 import Button from "@/components/ui/button/Button";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { useProductStore } from "@/store/ProdcutStore";
+import useFetch from "@/hooks/Api/useFetch";
+import { useEffect, useState } from "react";
 
 function AddOrder() {
+
+  //validation schema for the form
   const schema = yup.object({
     payment_method: yup.string().required(),
-      status: yup.string().required(),
-      shipping_address: yup.string().required(),
-      product_id: yup.number().positive().integer().required(),
-      unit_price: yup.number().positive().required(),
-      total_price: yup.number().positive().required(),
-      quantity: yup.number().positive().required(),
-      user_id: yup.number().positive().integer().required(),
-      total_amount: yup.number().positive().required()
-  
+    status: yup.string().required(),
+    shipping_address: yup.string().required(),
+    product_id: yup.number().positive().integer().required(),
+    unit_price: yup.number().positive().required(),
+    total_price: yup.number().positive().required(),
+    quantity: yup.number().positive().required(),
+    user_id: yup.number().positive().integer().required(),
+    total_amount: yup.number().positive().required(),
+    product_name: yup.string().required()
   }).required()
 
   const {register, handleSubmit, formState:{errors}} = useForm({
@@ -36,52 +49,50 @@ function AddOrder() {
       payment_method: "",
       status: "",
       shipping_address: "",
-      // order_details: [
-      //   {
-      //     product_id: "",
-      //     unit_price: "",
-      //     total_price: "",
-      //     quantity: "",
-      //     user_id: "",
-      //     total_amount: "",
-      //   }
-      // ]
+      product_name:"",
+      
+      order_details: [
+        {
+          product_id: "",
+          unit_price: "",
+          total_price: "",
+          quantity: "",
+          user_id: "",
+          total_amount: "",
+        }
+      ]
     }
   })
 
-  function handleQuantityChange(e, index) {
-    const value = e.target.value;
+//fetch products from api endpoint and store in zustand store
+const { data, error, isPending } = useFetch("api/products");
 
-    setOrderData(prev => {
-      const updatedDetails = [...prev.order_details];
+//save the products in the products store
+useEffect(() => {
+  useProductStore.getState().setProducts(data?.products ?? []);
+},[data]);
 
-      updatedDetails[index] = {
-        ...updatedDetails[index],
-        quantity: value === "" ? "" : Number(value),
-      };
+const products = useProductStore((state) => state.products);
+const [orderList, setOrderList] = useState([]);
 
-      return {
-        ...prev,
-        order_details: updatedDetails,
-      };
-    });
-  }
-
-  function increaseCount() {
-    setCount(count + 1);
-  }
-  function decreaseCount() {
-    setCount(count - 1);
-  }
-  function handleAddOrder() {
+  function handleAddOrder(e) {
     e.preventDefault();
-    console.log("backend code running now");
+    console.log("order addition running")
   }
 
-  function handleWishList(e, productID){
-    e.preventDefault();
-    console.log("wishlist running")
-  }
+  // function handleWishList(e, productID){
+  //   e.preventDefault();
+  //   setOrderList(...orderList, productID);
+  //   console.log("wishlist running", orderList)
+  // }
+  //const wishList = products.filter(item=>item.id === orderList[5]);
+  
+  const [wishList, setWishList] = useState([])
+  
+  useEffect(()=>{
+    setWishList([...wishList, products.filter(item=>item.id === orderList[0])])
+    console.log(wishList)
+  },[orderList])
 
   return <>
     <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white/90">
@@ -188,53 +199,43 @@ function AddOrder() {
       <div className="flex gap-4 items-center my-4 border border-gray-200 bg-gray-100 rounded-2xl px-4 pb-3 pt-2 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
         <div>
           <Label children={"Product Name"} htmlFor="product_name" />
-          {
-            // orderData.order_details.map((item, index) => (
-              <Input
-                className="w-full"
-                name="product_name"
-                placeholder="Eg: Samsung Tv set"
-                // value={orderData.order_details[index].product_id}
-                // onChange={(e) => handleQuantityChange(e, index)}
-              />
-              // ))
-            }
-        </div>
-        <div>
-          <Label children={"Price"} htmlFor="price" />
-          {
-            // orderData.order_details.map((item, index) => (
-              <Input
-                className="w-full"
-                name="price"
-                placeholder="Eg: GH¢100.00"
-                // value={orderData.order_details[index].unit_price}
-                // onChange={(e) => handleQuantityChange(e, index)}
-              />
-              // ))
-              }
+            <Combobox items={products} onSelect={(value) => console.log("Selected product:", value)} >
+            <ComboboxInput placeholder="Select a product" {...register("product_name")} />
+            <ComboboxContent>
+              <ComboboxEmpty>No items found.</ComboboxEmpty>
+              <ComboboxList>
+                {(item) => (
+                  <ComboboxItem key={item.id} value={item.name}>
+                    {item.name}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+          {errors.product_name && <p className="text-red-500 text-sm">{errors.product_name.message}</p> }
         </div>
         <div>
           <Label children={"Quantity"} htmlFor="quantity" />
           <div className="flex items-center px-4 rounded-lg border border-gray-200">
-            {/* <IoAdd onClick={increaseCount} /> */}
-            {
-              // orderData.order_details.map((item, index) => (
-                <Input
-                  className="w-full border-0 "
-                  type="number"
-                  defaultValue={1}
-                  placeholder={"product quantity"}
-                  // value={orderData.order_details[index].quantity}
-                  // onChange={(e) => handleQuantityChange(e, index)}
-                />
-              // ))
-            }
-            {/* <RiSubtractFill onClick={decreaseCount} /> */}
+            <Input
+              className="w-full border-0 "
+              type="number"
+              defaultValue={1}
+              placeholder={"product quantity"}
+            />
           </div>
         </div>
         <div>
-          <Button type="button" onClick={(e)=>handleWishList(e)} children={"Save Product"} />
+          <Label children={"Price"} htmlFor="price" />
+          <Input
+            className="w-full border-0 "
+            type="number"
+            defaultValue={1}
+            placeholder={"product price"}
+          />  
+        </div>
+        <div>
+          <Button type="button" onClick={(e)=>{setOrderList([...orderList, 10]);}} children={"Save Product"} />
         </div>
       </div>
       <Button type="submit" children={"Add Product"} className="mt-4" />
