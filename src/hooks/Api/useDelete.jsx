@@ -14,13 +14,13 @@ const del = async (url) => {
 
 const useDelete = (url) => {
 
-    const { mutate, data, error, isLoading, isError, isSuccess} = useMutation({
+    const { mutate, data, error, isPending, isError, isSuccess} = useMutation({
         mutationFn: ()=>del(url),
     });
 
 
 
-    return { mutate, data, error, isLoading, isError, isSuccess };
+    return { mutate, data, error, isPending, isError, isSuccess };
 }
 
 export default useDelete;

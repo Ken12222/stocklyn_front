@@ -3,6 +3,7 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import usePost from "@/hooks/Api/usePost";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router";
 
 function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,12 +16,14 @@ function UserDropdown() {
 
   const { auth, setAuth } = useAuth()
   const { mutate: logout } = usePost("/logout");
+  const navigate = useNavigate()
 
   async function handleLogout(e) {
     e.preventDefault();
     logout(undefined, {
       onSuccess: () => {
         setAuth(null)
+        navigate("/signup")
       }
     });
   }

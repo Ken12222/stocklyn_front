@@ -37,6 +37,7 @@ import { preventDefault } from "@fullcalendar/core/internal";
 import useDelete from "@/hooks/Api/useDelete";
 import { toast } from "sonner";
 import { DeleteSafeCheck } from "@/components/alert/alert";
+import { Spinner } from "@/components/alert/spinner";
 
 
 function Products() {
@@ -89,7 +90,7 @@ function Products() {
       accessorKey: "status",
       header: "status",
       cell: ({ row }) => <div className="capitalize text-gray-600">
-        {row.getValue("status") == "stock" ? <Badge color={"success"} children={"In Stock"} /> : <Badge color="error" children={"Out of Stock"} />}
+        {row.getValue("status") === "out" ? <Badge color="error" children={"Stock Out"} /> : <Badge color={"success"} children={"In Stock"} />}
       </div>
     },
     {
@@ -111,34 +112,11 @@ function Products() {
         const product = row.original;
         return <DropdownMenu>
           <div className="flex items-center space-x-2">
-            <DeleteSafeCheck url = {`/api/products/${product.id}`} />
+            <DeleteSafeCheck url = {`api/products/${product.id}`} />
             <Link to={`/products/${product.id}`} className="block w-full text-left">
               <Eye size={20} className="text-gray-500"  />
             </Link>
           </div>
-
-          {/* <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal />
-            </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white" align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="hover:bg-gray-100">
-              <Link to={`/products/${product.id}`} className="block w-full text-left">
-                View Product
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem  className="hover:bg-red-100 bg-red-50 text-red-600">
-              <form onSubmit={(e)=>handleDelete(e, product.id)}>
-                <Button>
-                Delete
-                </Button>
-              </form>
-            </DropdownMenuItem>
-          </DropdownMenuContent> */}
         </DropdownMenu>;
       }
     }
@@ -243,6 +221,9 @@ function Products() {
               )}
             </TableCell>)}
           </TableRow>) : <TableRow>
+            {isPending && <TableCell colSpan={columns.length}>
+              <Spinner />
+            </TableCell>}
             <TableCell
               colSpan={columns.length}
               className="h-24 text-center"

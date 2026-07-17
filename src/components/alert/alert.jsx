@@ -13,14 +13,24 @@ import { Button } from "../ui/button"
 import { Trash } from "lucide-react"
 import useDelete from "@/hooks/Api/useDelete"
 import { toast } from "sonner"
+import { useParams } from "react-router"
+import { useEffect } from "react"
+import { useWarehouseStore } from "@/store/WarehouseStore"
+import { Spinner } from "./spinner"
 
-export function DeleteSafeCheck({ url }) {
-
-    const { mutate:deleteProduct, data:deleteData, error:deleteError, isLoading, isError, isSuccess } = useDelete(url)
-
+export function DeleteSafeCheck({ url, id }) {
+  const { mutate:deleteProduct, data:deleteData, error:deleteError, isPending, isError, isSuccess } = useDelete(url)
+  const warehouses = useWarehouseStore(state=>state.warehouses)
+  const removeWarehouse = useWarehouseStore(state=>state.removeWarehouse)
+  
   async function handleDelete(e){
     e.preventDefault()
     deleteProduct()
+  }
+
+  if(isPending){
+
+    // <Spinner />
   }
 
   if(isSuccess){
@@ -28,9 +38,10 @@ export function DeleteSafeCheck({ url }) {
       position: "top-center"
     })
   }
-
+  
   if(isError){
-    toast.error(deleteData?.message, {position:"top-center"})
+    deleteData && toast.error(deleteData?.message, {position:"top-center"})
+    deleteError && toast.error(deleteError?.message, {position:"top-center"})
   }
 
   return <AlertDialog>
@@ -47,8 +58,10 @@ export function DeleteSafeCheck({ url }) {
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <form onSubmit={(e)=>handleDelete(e)}>
-            <AlertDialogAction>
-              Continue
+            <AlertDialogAction asChild>
+              <Button type="submit">
+                Continue
+              </Button>
             </AlertDialogAction>
           </form>
         </AlertDialogFooter>

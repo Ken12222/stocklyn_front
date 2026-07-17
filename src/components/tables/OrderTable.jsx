@@ -23,6 +23,7 @@ import {useWishListStore} from "@/store/wishListStore";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { Pen } from "lucide-react";
+import { Spinner } from "../alert/spinner";
 
 export function OrderTable(){
 
@@ -34,19 +35,16 @@ export function OrderTable(){
     const [quantity, setQuantity] = useState(1)
     const [productID, setProductID] = useState(null)
 
-    useEffect(() => {
-        useProductStore.getState().setProducts(data?.products ?? []);
-    },[data]);
     
     useEffect(() => {
         useProductStore.getState().setProducts(data?.products ?? []);
-    },[wishListIDs]);
+    },[data]);
     
     //save the products in the products store
     function handleWishList(e, productID){
         e.preventDefault();
         const id = Number(productID);
-        console.log("product id", wishListIDs);
+
         if(wishListIDs === 0 || id === null || id === 0 || id === undefined){
             return toast.error("Please select a product to add to order list", {position: "top-center"})
         }
@@ -54,6 +52,9 @@ export function OrderTable(){
         useWishListStore.getState().setWishList(id);
     }
     const productsInWishList = products?.filter(product => wishListIDs.includes(product.id));
+
+    error ? toast.error("Failed to load products, try again later", {position: "top-center"}):"";
+    isPending ? <Spinner /> : ""
     
     return (
         <>
@@ -72,7 +73,7 @@ export function OrderTable(){
             <TableBody>
             {productsInWishList && productsInWishList.map((item, index) => 
                 <TableRow key={index} className="hover:bg-gray-100 dark:hover:bg-white/5">
-                <TableCell className="py-4">1</TableCell>
+                <TableCell className="py-4">{item.id}</TableCell>
                 <TableCell>{item.name}</TableCell>
                 <TableCell>{quantity}</TableCell>
                 <TableCell>{item.price}</TableCell>

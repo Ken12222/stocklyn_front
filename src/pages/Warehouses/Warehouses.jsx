@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useEffect } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -7,15 +8,12 @@ import {
   getSortedRowModel,
   useReactTable
 } from "@tanstack/react-table";
-import { ChevronDown, MoreHorizontal } from "lucide-react";
+import { ChevronDown, Eye, MoreHorizontal } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -30,6 +28,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router";
 import useFetch from "../../hooks/Api/useFetch";
+import { DeleteSafeCheck } from "@/components/alert/alert";
+import { useWarehouseStore } from "@/store/WarehouseStore";
 
 const columns = [
   {
@@ -91,27 +91,12 @@ const columns = [
     cell: ({ row }) => {
       const { id } = row.original;
       return <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreHorizontal />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="bg-white" align="end">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className="hover:bg-gray-100">
-            <Link
-              to={`/warehouses/${id}`}
-              className="capitalize text-gray-600 hover:underline"
-            >
-              View
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="hover:bg-red-100 bg-red-50 text-red-600">
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
+        <div className="flex items-center space-x-2">
+          <DeleteSafeCheck url = {`api/warehouses/${id}`} id={id} />
+          <Link to={`/warehouses/${id}`} className="block w-full text-left">
+            <Eye size={20} className="text-gray-500"  />
+          </Link>
+        </div>
       </DropdownMenu>;
     }
   }
@@ -123,13 +108,23 @@ function Warehouses() {
     []
   );
   const { data, error, isPending } = useFetch("api/warehouses");
-  console.log("Fetched data:", data);
-  console.log("Fetch error:", error);
+
+  useEffect(()=>{
+    if(data){
+      useWarehouseStore.getState().setWarehouses(data)
+    }
+  },[data])
+  
+  const warehouses = useWarehouseStore(state=>state.warehouses);
+
+  // useEffect(()=>{
+  //   useWarehouseStore.getState().setWarehouses(warehouses)
+  // },[warehouses])
 
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
   const table = useReactTable({
-    data: data?.warehouses ?? [],
+    data: warehouses?.warehouses ?? [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

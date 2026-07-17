@@ -152,6 +152,8 @@ function Orders() {
   //grab the orders from the zustand store
   const orders = useOrderStore((state) => state.orders);
 
+  //console.log(orders)
+
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState(
     []
