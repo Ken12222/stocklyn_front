@@ -59,20 +59,23 @@ const columns = [
     </Link>
   },
   {
-    accessorKey: "customer_name",
-    header: "Customer",
+    accessorKey: "user",
+    header: "Sales Rep",
     cell: ({ row }) => {
-      const customer = row.original;
-      < div className="capitalize text-gray-600" >
-        {customer ? `${customer.fname}` : "N/A"
-        }
+      const salesRep = row.original.user;
+      // console.log(salesRep.fname + salesRep.lname);
+      return < div className="capitalize text-gray-600" >
+        {salesRep ? salesRep?.fname +" "+ salesRep?.lname : "N/A"}
       </div >
     }
   },
   {
     accessorKey: "email",
     header: "email",
-    cell: ({ row }) => <div className="capitalize text-gray-600">{row.getValue("email")}</div>
+    cell: ({ row }) => {
+     const email = row.original?.user?.email; 
+      return <div className="capitalize text-gray-600">{email? email: "N/A"}</div>
+    }
   },
   {
     accessorKey: "created_at",
@@ -152,8 +155,6 @@ function Orders() {
   //grab the orders from the zustand store
   const orders = useOrderStore((state) => state.orders);
 
-  //console.log(orders)
-
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState(
     []
@@ -192,8 +193,8 @@ function Orders() {
       <div className="flex items-center py-4">
         <Input
           placeholder="Search product..."
-          value={table.getColumn("customer_name")?.getFilterValue() ?? ""}
-          onChange={(event) => table.getColumn("customer_name")?.setFilterValue(event.target.value)}
+          value={table.getColumn("user")?.getFilterValue() ?? ""}
+          onChange={(event) => table.getColumn("user")?.setFilterValue(event.target.value)}
           className="max-w-sm"
         />
         <DropdownMenu>

@@ -1,3 +1,4 @@
+import { useOrderStore } from "@/store/OrderStore";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -6,6 +7,12 @@ import {
 } from "../../icons";
 import Badge from "../ui/badge/Badge";
 function EcommerceMetrics() {
+
+  const todayDate = new Date()
+  const orders = useOrderStore(StaticRange=>StaticRange.orders);
+  const todayOrders = orders?.orders?.filter(order=>order.created_at === todayDate.getDate());
+  // console.log("today orders",todayDate)
+  
   return <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
       {
     /* <!-- Metric Item Start --> */
@@ -47,7 +54,7 @@ function EcommerceMetrics() {
               Orders
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              5,359
+              {orders?.orders?.length}
             </h4>
           </div>
 
