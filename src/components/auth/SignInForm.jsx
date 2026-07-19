@@ -58,7 +58,7 @@ function SignInForm() {
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 //required
                 />
-                {error?.errors.email && error?.errors.email.map((msg, index) => (
+                {error && error?.errors.email && error?.errors.email.map((msg, index) => (
                   <p key={index} className="text-sm py-2 text-error-500">
                     {msg}
                   </p>

@@ -39,8 +39,7 @@ function AddProduct() {
     }
   })
 
-  async function handleCreateProduct() {
-      console.log("backend code running")
+  async function handleCreateProduct(data) {
     createProduct( {
       onSuccess: () => {
         toast.success("Product has been added successfully", {

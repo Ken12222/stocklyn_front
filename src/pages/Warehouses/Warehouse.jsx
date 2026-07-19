@@ -44,15 +44,47 @@ import { AiOutlineDelete } from "react-icons/ai";
 import useFetch from "@/hooks/Api/useFetch";
 import { useWarehouseStore } from "@/store/WarehouseStore";
 import { DeleteSafeCheck } from "@/components/alert/alert";
+import usePost from "@/hooks/Api/usePost";
+import { useForm } from "react-hook-form";
+import * as yup from "yup"
+import { yupResolver } from "@hookform/resolvers/yup";
+import { toast } from "sonner";
 
 function Warehouse() {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState(
     []
   );
-  function RequestProduct(e){
-    e.preventDefault();
-    console.log("requesting product")
+
+  const { data, mutate: createProduct, error:requestError, isLoading, isSuccess } = usePost("/api/request");
+
+  const schema = yup.object({
+    "name": yup.string().required(),
+    "quantity": yup.number().positive().integer().required(),
+    "date":yup.date().required()
+  }).required()
+
+  const {register, handleSubmit, formState:{errors}} = useForm({
+    resolver: yupResolver(schema),
+    defaultValues:{
+      "date":"",
+      "quantity":"",
+      "name":""
+    }
+  })
+
+  function RequestProduct(data){
+    //e.preventDefault();
+    createProduct( {
+      onSuccess: () => {
+        toast.success("Request has been added successfully", {
+          position: "top-center"
+        })
+      },
+      onError: (error) => {
+        toast.error("Failed to add Request. Please try again later", {position:"top-center"})
+      }
+    })
   }
   
   const columns = [
@@ -127,12 +159,11 @@ function Warehouse() {
         return <div className="flex items-center gap-4">
             <Dialog>
               <DialogTrigger asChild>
-                {row.getValue("status") == "stock" ? <Button variant="outline">Request Item</Button> : <Button disabled variant="outline">
+                {row.getValue("status") == "stock" ? <Button variant="outline">Request Item</Button> : <Button type="button" disabled variant="outline">
                     Request Item
                   </Button>}
               </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
-              <form>
                   <DialogHeader>
                     <DialogTitle>Make a transfer request</DialogTitle>
                     <DialogDescription className="text-sm">
@@ -140,31 +171,36 @@ function Warehouse() {
                       number of this item
                     </DialogDescription>
                   </DialogHeader>
+              <form onSubmit={handleSubmit(RequestProduct)} >
                   <div className="grid gap-4 mt-4">
                     <div className="grid gap-3">
                       <Label htmlFor="name">Product Name</Label>
                       <Input
                         id="name"
-                        name="name"
+                        {...register("name")}
                         defaultValue={row.getValue("name")}
                       />
+                      {errors && <p className="text-red-500 text-sm">{errors && errors?.name?.message}</p> }
                     </div>
                     <div className="grid gap-3">
                       <Label htmlFor="quantity">Quantity</Label>
                       <Input
                         id="quantity"
+                        {...register("quantity")}
                         name="quantity"
                         placeholder="Enter product quantity"
                       />
+                      {errors && <p className="text-red-500 text-sm">{errors && errors?.quantity?.message}</p> }
                     </div>
                     <div className="grid gap-3 mb-4">
                       <Label htmlFor="expected_date">Expected Date</Label>
                       <Input
                         id="date"
                         type="date"
-                        name="date"
+                        {...register("date")}
                         defaultValue="enter date"
                       />
+                      {errors && <p className="text-red-500 text-sm">{errors && errors?.date?.message}</p> }
                       </div>
                     </div>
                     <DialogFooter>
@@ -174,7 +210,6 @@ function Warehouse() {
                     <Button
                       className="bg-brand-500 hover:bg-brand-600 disabled:bg-brand-300"
                       type="submit"
-                      onClick={(e)=>RequestProduct(e)}
                     >
                       Save changes
                     </Button>
