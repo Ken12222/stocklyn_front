@@ -11,6 +11,7 @@ import { useEffect } from "react";
 import useFetch from "@/hooks/Api/useFetch";
 import { toast } from "sonner";
 import { Link } from "react-router";
+import { useAuth } from "@/hooks/useAuth";
 const tableData = [
   {
     id: 1,
@@ -80,7 +81,9 @@ function RecentOrders() {
     toast.error(error.message, { position:"top-center"})
   }
 
-  const orders = useOrderStore(state=>state.orders);
+  const {auth} = useAuth();
+  const orders = useOrderStore(state=>state.orders)?.orders?.filter(order=>order?.warehouse_id === auth?.warehouse_id);
+  console.log(orders);
 
   return <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
       <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
@@ -179,7 +182,7 @@ function RecentOrders() {
   }
 
           <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
-            {orders?.orders && orders?.orders?.length > 0 && orders?.orders?.slice(0, 5).map((product) => <TableRow key={product.id} className="">
+            {orders && orders?.length > 0 && orders?.slice(0, 5).map((product) => <TableRow key={product.id} className="">
                 <TableCell className="">
                   <div className="flex items-center gap-3">
                     <div className="h-[20px] w-[20px] overflow-hidden rounded-md">

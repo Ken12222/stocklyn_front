@@ -6,12 +6,14 @@ import {
   GroupIcon
 } from "../../icons";
 import Badge from "../ui/badge/Badge";
+import { useAuth } from "@/hooks/useAuth";
 function EcommerceMetrics() {
 
   const todayDate = new Date()
   const orders = useOrderStore(StaticRange=>StaticRange.orders);
   const todayOrders = orders?.orders?.filter(order=>order.created_at === todayDate.getDate());
-  // console.log("today orders",todayDate)
+  const {auth} = useAuth();
+  const paidOrders = orders?.orders?.filter(order=>order.warehouse_id === auth?.warehouse_id && order.status === "paid")
   
   return <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
       {
@@ -25,11 +27,13 @@ function EcommerceMetrics() {
         <div className="flex items-end justify-between mt-5">
           <div>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Customers
+              Total sales
             </span>
-            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              3,782
-            </h4>
+              {paidOrders && 
+                <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
+                  {paidOrders.reduce((sum, paid) => sum + (+paid.total_amount || 0), 0)}
+                </h4>
+              }
           </div>
           <Badge color="success">
             <ArrowUpIcon />
@@ -54,7 +58,7 @@ function EcommerceMetrics() {
               Orders
             </span>
             <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              {orders?.orders?.length}
+              {orders?.orders?.filter(order=>order.warehouse_id === auth?.warehouse_id).length}
             </h4>
           </div>
 

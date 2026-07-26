@@ -56,26 +56,21 @@ function Warehouse() {
     []
   );
 
-  const { data, mutate: createProduct, error:requestError, isLoading, isSuccess } = usePost("/api/request");
+  const { data, mutate: createProduct, error:requestError, isLoading, isSuccess } = usePost("/api/transfer");
 
   const schema = yup.object({
-    "name": yup.string().required(),
-    "quantity": yup.number().positive().integer().required(),
-    "date":yup.date().required()
+    "product_id": yup.string().required(),
+    "requested_quantity": yup.number().positive().integer().required(),
+    "expected_date":yup.date().required()
   }).required()
 
   const {register, handleSubmit, formState:{errors}} = useForm({
     resolver: yupResolver(schema),
-    defaultValues:{
-      "date":"",
-      "quantity":"",
-      "name":""
-    }
   })
 
   function RequestProduct(data){
     //e.preventDefault();
-    createProduct( {
+    createProduct(data, {
       onSuccess: () => {
         toast.success("Request has been added successfully", {
           position: "top-center"
@@ -156,6 +151,7 @@ function Warehouse() {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
+        const {id, quantity, name} = row.original
         return <div className="flex items-center gap-4">
             <Dialog>
               <DialogTrigger asChild>
@@ -174,33 +170,37 @@ function Warehouse() {
               <form onSubmit={handleSubmit(RequestProduct)} >
                   <div className="grid gap-4 mt-4">
                     <div className="grid gap-3">
-                      <Label htmlFor="name">Product Name</Label>
+                      {/* <Label htmlFor="name">Product Name</Label>
+                       {console.log(id)} */}
                       <Input
-                        id="name"
-                        {...register("name")}
-                        defaultValue={row.getValue("name")}
+                        id="id"
+                        type="hidden"
+                        {...register("product_id", {required:"Product is required"})}
+                        defaultValue={Number(id)}
+                        placeholder={name}
                       />
-                      {errors && <p className="text-red-500 text-sm">{errors && errors?.name?.message}</p> }
+                      {errors && <p className="text-red-500 text-sm">{errors && errors?.product_id?.message}</p> }
                     </div>
                     <div className="grid gap-3">
                       <Label htmlFor="quantity">Quantity</Label>
                       <Input
                         id="quantity"
-                        {...register("quantity")}
-                        name="quantity"
-                        placeholder="Enter product quantity"
+                        {...register("requested_quantity")}
+                        name="requested_quantity"
+                        defaultValue={quantity}
+                        placeholder={quantity}
                       />
-                      {errors && <p className="text-red-500 text-sm">{errors && errors?.quantity?.message}</p> }
+                      {errors && <p className="text-red-500 text-sm">{errors && errors?.requested_quantity?.message}</p> }
                     </div>
                     <div className="grid gap-3 mb-4">
                       <Label htmlFor="expected_date">Expected Date</Label>
                       <Input
                         id="date"
                         type="date"
-                        {...register("date")}
+                        {...register("expected_date")}
                         defaultValue="enter date"
                       />
-                      {errors && <p className="text-red-500 text-sm">{errors && errors?.date?.message}</p> }
+                      {errors && <p className="text-red-500 text-sm">{errors && errors?.expected_date?.message}</p> }
                       </div>
                     </div>
                     <DialogFooter>
@@ -217,7 +217,7 @@ function Warehouse() {
               </form>
                 </DialogContent>
             </Dialog>
-            <DeleteSafeCheck url={`/api/warehouses/${1}`}/>
+            <DeleteSafeCheck url={`/api/products/${id}`}/>
           </div>;
       }
     }
@@ -293,7 +293,7 @@ function Warehouse() {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-white" align="end">
               {table.getAllColumns().filter((column) => column.getCanHide()).map((column) => {
-    return <DropdownMenuCheckboxItem
+                return <DropdownMenuCheckboxItem
             key={column.id}
             className="capitalize"
             checked={column.getIsVisible()}

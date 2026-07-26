@@ -13,10 +13,15 @@ const TableRow = ({ children, className }) => {
 const TableCell = ({
   children,
   isHeader = false,
-  className
+  className,
+  ...props
 }) => {
   const CellTag = isHeader ? "th" : "td";
-  return <CellTag className={` ${className}`}>{children}</CellTag>;
+  return (
+    <CellTag className={` ${className}`} {...props}>
+      {children}
+    </CellTag>
+  );
 };
 export {
   Table,

@@ -31,13 +31,15 @@ import {
 import Badge from "@/components/ui/badge/Badge";
 import { Link, useParams } from "react-router";
 import useFetch from "../../../hooks/Api/useFetch";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useProductStore } from "../../../store/ProdcutStore";
 import { preventDefault } from "@fullcalendar/core/internal";
 import useDelete from "@/hooks/Api/useDelete";
 import { toast } from "sonner";
 import { DeleteSafeCheck } from "@/components/alert/alert";
 import { Spinner } from "@/components/alert/spinner";
+import { useAuth } from "@/hooks/useAuth";
+import { connectRealtimeStore, disconnectRealtimeStore } from "@/lib/echoEvent";
 
 
 function Products() {
@@ -126,23 +128,41 @@ function Products() {
   const [columnFilters, setColumnFilters] = React.useState(
     []
   );
+  //grab auth user data
+  const {auth} = useAuth() 
 
   //fetch products from api endpoint and store in zustand store
   const { data, error, isPending } = useFetch("api/products");
+  const setProducts = useProductStore((state) => state.setProducts);
+  const tableData = useProductStore((state) => state.products);
 
   //save the products in the products store
   useEffect(() => {
-    useProductStore.getState().setProducts(data?.products ?? []);
-  },[data]);
-  
-  const tableData = useProductStore((state) => state.products);
+    if (!data?.products) return;
+
+    setProducts(data.products ?? []);
+
+    const channelName = "private-products";
+    connectRealtimeStore(
+      () => useProductStore.getState().products,
+      setProducts,
+      { channelName, modelType: "products" }
+    );
+
+    return () => disconnectRealtimeStore(channelName);
+  }, [data?.products, setProducts]);
+
+  const thisWarehouseProducts = useMemo(() => {
+    return tableData.filter(product => product.warehouse_id === auth?.warehouse_id);
+  }, [tableData]);
+
 
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
 
 
   const table = useReactTable({
-    data: tableData,
+    data: thisWarehouseProducts || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

@@ -26,6 +26,7 @@ import * as yup from "yup";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useEffect, useState } from "react";
 import { CloseIcon } from "@/icons";
+import { toast } from "sonner";
 
 export default function SingleProduct() {
     const productID = useParams();
@@ -54,14 +55,20 @@ export default function SingleProduct() {
     const [closeSuccess, setCloseSuccess] = useState(false);
     // Use the usePut hook to handle adding the product
     const {mutate: addProduct, data, error, isLoading, isError, isSuccess} = usePut(`/api/products/${productID?.id}`);
+    
     // Handle the form submission to add the product
     async function handleAddProduct(data) {
-        addProduct(data);
-        isSuccess ? setCloseSuccess(true) : ""
-        console.log(closeSuccess)
-        
+        addProduct(data) 
     }
-    //add a close button for users to close the success or error state after an update
+    //is success show success messgae
+    if(isSuccess){
+        toast.success(data && data?.message, {position:"top-center"})
+    }
+
+    //is error show error messgae
+    if(isError){
+        toast.error(error && error.message, {position:"top-center"})
+    }
 
     return <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
         <h1 className="m-4">Product</h1>
@@ -91,11 +98,11 @@ export default function SingleProduct() {
                             <DialogDescription>
                             Enter Product Quantity
                             </DialogDescription>
-                            {isSuccess && closeSuccess && <div className="bg-green-200 border-1 border-green-400 text-green-900 rounded-md p-4 flex justify-between">
+                            {/* {isSuccess && closeSuccess && <div className="bg-green-200 border-1 border-green-400 text-green-900 rounded-md p-4 flex justify-between">
                                 <p className="">{data.message}</p>
                                 <CloseIcon size={4} onClick={()=>setCloseSuccess(!closeSuccess)}/>
                             </div>
-                            }
+                            } */}
                         </DialogHeader>
                     <form onSubmit={handleSubmit(handleAddProduct)} >
                         <div className="mb-4">

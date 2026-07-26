@@ -18,7 +18,7 @@ import { useEffect } from "react"
 import { useWarehouseStore } from "@/store/WarehouseStore"
 import { Spinner } from "./spinner"
 
-export function DeleteSafeCheck({ url, id }) {
+export function DeleteSafeCheck({ url}) {
   const { mutate:deleteProduct, data:deleteData, error:deleteError, isPending, isError, isSuccess } = useDelete(url)
   const warehouses = useWarehouseStore(state=>state.warehouses)
   const removeWarehouse = useWarehouseStore(state=>state.removeWarehouse)

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -30,6 +30,8 @@ import { Link } from "react-router";
 import useFetch from "../../hooks/Api/useFetch";
 import { DeleteSafeCheck } from "@/components/alert/alert";
 import { useWarehouseStore } from "@/store/WarehouseStore";
+import { connectRealtimeStore, disconnectRealtimeStore } from "@/lib/echoEvent";
+import { useAuth } from "@/hooks/useAuth";
 
 const columns = [
   {
@@ -108,23 +110,38 @@ function Warehouses() {
     []
   );
   const { data, error, isPending } = useFetch("api/warehouses");
+  const setWarehouses = useWarehouseStore((state) => state.setWarehouses);
 
-  useEffect(()=>{
-    if(data){
-      useWarehouseStore.getState().setWarehouses(data)
-    }
-  },[data])
+  //set warehouses after the data is retrieved from the api
+  useEffect(() => {
+    if (!data) return;
+
+    setWarehouses(data);
+    const channelName = "private-warehouses";
+    connectRealtimeStore(
+      () => useWarehouseStore.getState().warehouses,
+      setWarehouses,
+      { channelName, modelType: "warehouses" }
+    );
+
+    return () => disconnectRealtimeStore(channelName);
+  }, [data, setWarehouses]);
+
+  //grab auth user data
+  const { auth } = useAuth();
   
-  const warehouses = useWarehouseStore(state=>state.warehouses);
-
-  // useEffect(()=>{
-  //   useWarehouseStore.getState().setWarehouses(warehouses)
-  // },[warehouses])
+  //grap warehouse id from user and use to filter
+  const warehousesData = useWarehouseStore((state) => state.warehouses);
+  const warehouses = useMemo(
+    () => {
+      return warehousesData?.filter(warehouse => warehouse.id !== auth?.warehouse_id);
+    }, [warehousesData, auth?.warehouse_id]
+  );
 
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
   const table = useReactTable({
-    data: warehouses?.warehouses ?? [],
+    data: warehouses ?? [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

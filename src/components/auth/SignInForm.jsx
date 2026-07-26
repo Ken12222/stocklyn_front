@@ -9,26 +9,40 @@ import usePost from "../../hooks/Api/usePost";
 import { useNavigate } from "react-router";
 import { useAuth } from "@/hooks/useAuth";
 import useFetch from "@/hooks/Api/useFetch";
+import * as yup from "yup"
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 function SignInForm() {
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: ""
-  });
+
   const { auth, setAuth } = useAuth();
 
-  const { mutate: login, data, error, isLoading, isError, isSuccess } = usePost("/login");
+  const schema = yup.object({
+    email: yup.string().email().required(),
+    password:yup.string().min(8).required()
+  })
 
-  async function handleLogin(e) {
-    e.preventDefault();
-    login(formData, {
-      onSuccess: (data) => {
-        setAuth(data?.user)
+  const {register, handleSubmit, formState:{errors}} = useForm({
+    resolver: yupResolver(schema),
+    defaultValues:{email:"",
+    password:""}
+  })
+
+  const { mutate: login, data:userData, error, isLoading, isError, isSuccess } = usePost("/login");
+
+  async function handleLogin(data) {
+    login(data, {
+      onSuccess: (userData) => {
+        setAuth(userData?.user)
         navigate("/")
+      },
+      onError:(error)=>{
+        toast.error(error?.message, {position:"top-center"})
       }
     });
   }
@@ -48,14 +62,16 @@ function SignInForm() {
           </p>
         </div>
         <div>
-          <form onSubmit={(e) => handleLogin(e)}>
+          <form onSubmit={handleSubmit(handleLogin)}>
             <div className="space-y-6">
               <div>
                 <Label>
                   Email <span className="text-error-500">*</span>{" "}
                 </Label>
-                <Input placeholder="info@gmail.com" type="text" autoComplete="off" value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                <Input placeholder="info@gmail.com" type="text" autoComplete="off" 
+                {...register("email")}
+                // value={formData.email}
+                //   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 //required
                 />
                 {error && error?.errors.email && error?.errors.email.map((msg, index) => (
@@ -63,6 +79,11 @@ function SignInForm() {
                     {msg}
                   </p>
                 ))}
+                {errors?.password && 
+                  <p className="text-sm py-2 text-error-500">
+                    {errors?.email?.message}
+                  </p>
+                }
               </div>
               <div>
                 <Label>
@@ -72,8 +93,9 @@ function SignInForm() {
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    {...register("password")}
+                    // value={formData.password}
+                    // onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   //required
                   />
                   <span
@@ -82,6 +104,11 @@ function SignInForm() {
                   >
                     {showPassword ? <EyeIcon className="fill-gray-500 dark:fill-gray-400 size-5" /> : <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400 size-5" />}
                   </span>
+                  {errors?.password && 
+                    <p className="text-sm py-2 text-error-500">
+                      {errors?.password?.message}
+                    </p>
+                  }
                   {error?.errors.password && error?.errors.password.map((msg, index) => (
                     <p key={index} className="text-sm py-2 text-error-500">
                       {msg}
@@ -90,12 +117,6 @@ function SignInForm() {
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Checkbox checked={isChecked} onChange={setIsChecked} />
-                  <span className="block font-normal text-gray-700 text-theme-sm dark:text-gray-400">
-                    Keep me logged in
-                  </span>
-                </div>
                 <Link
                   to="/reset-password"
                   className="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"

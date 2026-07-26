@@ -71,9 +71,9 @@ const AppSidebar = () => {
   const othersItems = [
     auth?.role === "admin" && {
       icon: <PlugInIcon />,
-      name: "Authentication",
+      name: "Register",
       subItems: [
-        { name: "Sign Up", path: "/signup", pro: false }
+        { name: "Add Staff", path: "/register", pro: false }
       ]
     }
   ];

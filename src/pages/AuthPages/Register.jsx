@@ -1,7 +1,7 @@
 import PageMeta from "../../components/common/PageMeta";
 import AuthLayout from "./AuthPageLayout";
 import SignUpForm from "../../components/auth/SignUpForm";
-function SignUp() {
+function Register() {
   return <>
       <PageMeta
     title="Stocklyn"
@@ -13,5 +13,5 @@ function SignUp() {
     </>;
 }
 export {
-  SignUp as default
+  Register as default
 };

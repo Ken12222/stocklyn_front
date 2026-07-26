@@ -11,7 +11,10 @@ export default [
     languageOptions: {
       ecmaVersion: 'latest',
       globals: globals.browser,
-      sourceType: 'module'
+      sourceType: 'module',
+      ecmaFeatures: {
+        jsx: true,
+      },
     },
     plugins: {
       'react-hooks': reactHooks,

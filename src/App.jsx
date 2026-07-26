@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
-import SignUp from "./pages/AuthPages/SignUp";
+import Register from "./pages/AuthPages/Register";
 import NotFound from "./pages/OtherPage/NotFound";
 import UserProfiles from "./pages/UserProfiles";
 import Calendar from "./pages/Calendar";
@@ -21,18 +21,41 @@ import AddOrder from "./pages/Ecommerce/Orders/Add_Order";
 import SingleProduct from "./pages/Ecommerce/Products/SingleProduct";
 import AuthenticatedLayout from "./layout/AuthenticatedLayout";
 import api from "./hooks/axios";
-import { useEffect } from "react";
+import { Fragment, useEffect } from "react";
 import { Toaster } from "sonner";
+import Staff from "./pages/Staff/Staff";
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+window.Pusher = Pusher;
+
+window.Echo = new Echo({
+  broadcaster: "reverb",
+  key: import.meta.env.VITE_REVERB_APP_KEY,
+  wsHost: import.meta.env.VITE_REVERB_HOST,
+  wsPort: Number(import.meta.env.VITE_REVERB_PORT ?? 80),
+  wssPort: Number(import.meta.env.VITE_REVERB_PORT ?? 443),
+  forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? "https") === "https",
+  enabledTransports: ["ws", "wss"],
+  auth: {
+    headers: {
+      Accept: "application/json",
+      "X-Requested-With": "XMLHttpRequest",
+    },
+  },
+});
 
 function App() {
+
   useEffect(() => {
     // Initialize CSRF cookie once
     api.get("/sanctum/csrf-cookie").catch(err => console.error("CSRF Init Error:", err));
   }, []);
 
-  return <>
-    <Router>
-      <ScrollToTop />
+  return (
+    <Fragment>
+      <Router>
+        <ScrollToTop />
       <Toaster />
       <Routes>
         {/* Dashboard Layout */}
@@ -62,6 +85,11 @@ function App() {
               }
               <Route path="/warehouses/" element={<Warehouses />} />
               <Route path="/warehouses/:id" element={<Warehouse />} />
+              {
+                /* Warehouses Pages */
+              }
+              <Route path="/staff/" element={<Staff />} />
+              <Route path="/warehouses/:id" element={<Warehouse />} />
 
               {
                 /* Warehouses Pages */
@@ -70,7 +98,7 @@ function App() {
               <Route path="/warehouses/:id" element={<Warehouse />} />
 
               {/* Register Page */}
-              <Route path="/signup" element={<SignUp />} />
+              <Route path="/register" element={<Register />} />
             </Route>
           </Route>
         </Route>
@@ -86,7 +114,8 @@ function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
-  </>;
+    </Fragment>
+  );
 }
 export {
   App as default
